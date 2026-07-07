@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Atualizar Nomes — San Marino</title>
+  <style>
+    body { font-family: monospace; background: #0a0c0f; color: #f0f2f7; padding: 40px; }
+    .log { margin: 6px 0; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+    .ok  { background: rgba(39,174,96,0.2); color: #27AE60; border-left: 3px solid #27AE60; }
+    .err { background: rgba(192,57,43,0.2); color: #E74C3C; border-left: 3px solid #E74C3C; }
+    .inf { background: rgba(41,128,185,0.2); color: #5DADE2; border-left: 3px solid #2980B9; }
+    h2 { color: #C0392B; }
+    p { color: #8B91A5; font-size: 14px; }
+    button {
+      background: linear-gradient(135deg,#C0392B,#922B21);
+      border: none; border-radius: 8px; color: white;
+      font-size: 16px; font-weight: 700; padding: 14px 32px;
+      cursor: pointer; margin-top: 20px;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .warning { background: rgba(243,156,18,0.15); border: 1px solid rgba(243,156,18,0.3); border-radius: 8px; padding: 12px 16px; margin: 16px 0; color: #F39C12; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h2>🔧 Atualizar Nomes dos Gerentes — San Marino BI</h2>
+  <p>Este script atualiza os nomes dos gerentes no Firestore. Execute quando estiver logado como Alberto (admin).</p>
+  <div class="warning">⚠️ Você precisa estar logado como Alberto para executar este setup. Se não estiver, <a href="index.html" style="color:#F39C12">faça login primeiro</a>.</div>
+  <button id="btn" onclick="runUpdate()">▶ Atualizar Nomes</button>
+  <div id="log" style="margin-top:24px"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoD6SQI5u91ql5MOO1DR791fevPUjzWlI",
+      authDomain: "bi-gerentes.firebaseapp.com",
+      projectId: "bi-gerentes",
+      storageBucket: "bi-gerentes.firebasestorage.app",
+      messagingSenderId: "331844480670",
+      appId: "1:331844480670:web:1570986f4a8e1920d5958f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Verifica se está logado
+    onAuthStateChanged(auth, (user) => {
+      const logEl = document.getElementById('log');
+      if (user) {
+        logEl.innerHTML = `<div class="log ok">✓ Logado como: ${user.email}</div>`;
+      } else {
+        logEl.innerHTML = `<div class="log err">✗ Não está logado! Faça login como Alberto antes.</div>`;
+        document.getElementById('btn').disabled = true;
+      }
+    });
+
+    // Mapeamento: uid → nome
+    const UPDATES = [
+      { uid: "vhlZ6BDidydglIw87bbYOi9WoQ52", nome: "Jonato" },
+      { uid: "9R4vEvNLOvhjY7n6Qif6WBD1kiC2", nome: "Adriano" },
+      { uid: "29Yiy3SzLFREPV8Lq6P78yS9JAn2", nome: "Marcel" },
+      { uid: "ioBZOqX8xRWwHe62PWMknKNqvuC3", nome: "Ritieri" },
+      { uid: "tyOtwQKEeDUCG9Qo5mkPTDP1u3S2", nome: "Luan" },
+      { uid: "D9clRecO7JScJj5DvT3T5sdPO9g1", nome: "Alberto" },
+    ];
+
+    window.runUpdate = async function() {
+      const btn = document.getElementById('btn');
+      btn.disabled = true;
+      btn.textContent = 'Atualizando...';
+      const logEl = document.getElementById('log');
+
+      function log(msg, type = 'inf') {
+        const d = document.createElement('div');
+        d.className = `log ${type}`;
+        d.textContent = msg;
+        logEl.appendChild(d);
+      }
+
+      log('🚀 Iniciando atualização de nomes...', 'inf');
+
+      for (const u of UPDATES) {
+        try {
+          await updateDoc(doc(db, 'usuarios', u.uid), { nome: u.nome });
+          log(`✓ ${u.nome} — nome atualizado com sucesso!`, 'ok');
+        } catch(e) {
+          log(`✗ Erro ao atualizar ${u.nome}: ${e.message}`, 'err');
+        }
+      }
+
+      log('', 'inf');
+      log('✅ Atualização concluída! Você pode fechar esta página.', 'ok');
+      btn.textContent = '✅ Concluído';
+    };
+  </script>
+</body>
+</html>

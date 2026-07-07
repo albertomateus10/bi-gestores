@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Setup Firebase — San Marino</title>
+  <style>
+    body { font-family: monospace; background: #0a0c0f; color: #f0f2f7; padding: 40px; }
+    .log { margin: 6px 0; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+    .ok  { background: rgba(39,174,96,0.2); color: #27AE60; border-left: 3px solid #27AE60; }
+    .err { background: rgba(192,57,43,0.2); color: #E74C3C; border-left: 3px solid #E74C3C; }
+    .inf { background: rgba(41,128,185,0.2); color: #5DADE2; border-left: 3px solid #2980B9; }
+    h2 { color: #C0392B; }
+    button {
+      background: linear-gradient(135deg,#C0392B,#922B21);
+      border: none; border-radius: 8px; color: white;
+      font-size: 16px; font-weight: 700; padding: 14px 32px;
+      cursor: pointer; margin-top: 20px;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h2>🔧 Setup — San Marino BI (Firebase)</h2>
+  <p style="color:#8B91A5">Este script cria os perfis de usuários no Firestore. Execute apenas uma vez.</p>
+  <button id="btn" onclick="runSetup()">▶ Executar Setup</button>
+  <div id="log" style="margin-top:24px"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoD6SQI5u91ql5MOO1DR791fevPUjzWlI",
+      authDomain: "bi-gerentes.firebaseapp.com",
+      projectId: "bi-gerentes",
+      storageBucket: "bi-gerentes.firebasestorage.app",
+      messagingSenderId: "331844480670",
+      appId: "1:331844480670:web:1570986f4a8e1920d5958f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const USUARIOS = [
+      { uid: "vhlZ6BDidydglIw87bbYOi9WoQ52",  nome: "Jonato",    role: "gerente" },
+      { uid: "9R4vEvNLOvhjY7n6Qif6WBD1kiC2",  nome: "Adriano",   role: "gerente" },
+      { uid: "29Yiy3SzLFREPV8Lq6P78yS9JAn2",  nome: "Marcel",    role: "gerente" },
+      { uid: "ioBZOqX8xRWwHe62PWMknKNqvuC3",  nome: "Ritieri",   role: "gerente" },
+      { uid: "tyOtwQKEeDUCG9Qo5mkPTDP1u3S2",  nome: "Luan",      role: "gerente" },
+      { uid: "D9clRecO7JScJj5DvT3T5sdPO9g1",  nome: "Alberto",   role: "admin"   },
+    ];
+
+    window.runSetup = async function() {
+      const btn = document.getElementById('btn');
+      btn.disabled = true;
+      btn.textContent = 'Executando...';
+      const logEl = document.getElementById('log');
+      logEl.innerHTML = '';
+
+      function log(msg, type = 'inf') {
+        const d = document.createElement('div');
+        d.className = `log ${type}`;
+        d.textContent = msg;
+        logEl.appendChild(d);
+      }
+
+      log('🚀 Iniciando setup do Firestore...', 'inf');
+
+      for (const u of USUARIOS) {
+        try {
+          await setDoc(doc(db, 'usuarios', u.uid), {
+            nome: u.nome,
+            role: u.role,
+            aprovado: true, // Contas padrão pré-aprovadas
+            criadoEm: new Date().toISOString()
+          });
+          log(`✓ ${u.nome} (${u.role}) — criado com sucesso!`, 'ok');
+        } catch(e) {
+          log(`✗ Erro ao criar ${u.nome}: ${e.message}`, 'err');
+        }
+      }
+
+      log('', 'inf');
+      log('✅ Setup concluído! Você pode fechar esta página.', 'ok');
+      btn.textContent = '✅ Concluído';
+    };
+  </script>
+</body>
+</html>

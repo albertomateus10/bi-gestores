@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Administrativo</title>
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <style>
+    .admin-header-bar {
+      background: linear-gradient(135deg, rgba(192, 57, 43, 0.15) 0%, rgba(10, 12, 15, 0) 60%);
+      border: 1px solid rgba(192, 57, 43, 0.2);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-header-bar h2 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .admin-header-bar p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .lojas-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 1300px) {
+      .lojas-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .lojas-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 500px) {
+      .lojas-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .loja-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+
+    .loja-card:hover {
+      border-color: rgba(192, 57, 43, 0.35);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .loja-card-head {
+      background: var(--primary-glow);
+      border-bottom: 1px solid rgba(192, 57, 43, 0.15);
+      padding: 14px 16px 12px;
+    }
+
+    .loja-card-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .loja-card-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .loja-card-body {
+      padding: 14px 16px;
+    }
+
+    .loja-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .loja-metric:last-child {
+      border-bottom: none;
+    }
+
+    .loja-metric-label {
+      color: var(--text-muted);
+    }
+
+    .loja-metric-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .charts-admin {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .charts-admin {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .ranking-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .rank-1 {
+      background: rgba(255, 215, 0, 0.2);
+      color: #FFD700;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .rank-2 {
+      background: rgba(192, 192, 192, 0.2);
+      color: #C0C0C0;
+      border: 1px solid rgba(192, 192, 192, 0.3);
+    }
+
+    .rank-3 {
+      background: rgba(205, 127, 50, 0.2);
+      color: #CD7F32;
+      border: 1px solid rgba(205, 127, 50, 0.3);
+    }
+
+    .rank-n {
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .ranking-loja {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .ranking-bar {
+      flex: 2;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .ranking-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--grad-primary);
+    }
+
+    .ranking-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 40px;
+      text-align: right;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR ADMIN -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo" style="justify-content: center; width: 100%;">
+          <img src="logonova.png" alt="San Marino Logo" style="max-height: 40px; width: auto;" />
+        </div>
+        <div style="margin-top: 14px; width: 100%;">
+          <select id="store-select" style="background: var(--bg-base); border: 1px solid var(--border); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; padding: 8px 12px; width: 100%; border-radius: 8px; cursor: pointer; outline: none; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+            <option value="carregando">Carregando...</option>
+          </select>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Painel Admin</div>
+        <a class="nav-item active" href="admin.html">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+          Visão Geral
+
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar" style="background:linear-gradient(135deg,#2980B9,#1A5276)">D</div>
+          <div class="user-details">
+            <div class="user-name" id="user-name">Diretor</div>
+            <div class="user-role" id="user-role">Administrador</div>
+          </div>
+          <button class="btn-logout" id="btn-logout" title="Sair">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-title">
+          <h1>Painel Administrativo</h1>
+          <p>Visão consolidada de todas as lojas</p>
+        </div>
+        <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+          <div class="today-date-badge" id="today-date-badge" style="background: rgba(10,12,15,0.04); border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; color: var(--text-secondary); font-size: 13px; font-weight: 600; height: 38px; display: flex; align-items: center;">
+            Hoje: --/--/----
+          </div>
+          <div class="date-range-picker-container" style="position: relative; display: flex; align-items: center; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.18); border-radius: 30px; padding: 8px 16px; gap: 8px; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; height: 38px;">
+            <span>📅</span>
+            <input type="text" id="date-range-select" placeholder="Selecione o período..." style="background: transparent; border: none; color: inherit; font-size: inherit; font-weight: 600; outline: none; cursor: pointer; width: 180px; text-align: center;" readonly />
+          </div>
+          <button class="btn-save" id="btn-refresh"
+            style="background:linear-gradient(135deg,#2980B9,#1A5276);box-shadow:0 4px 16px rgba(41,128,185,0.3)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Atualizar
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content fade-in">
+
+        <!-- Header banner -->
+        <div class="admin-header-bar">
+          <div>
+            <h2>📊 Conferência Comercial 360° — Todas as Lojas</h2>
+            <p id="admin-subtitle">Carregando dados...</p>
+          </div>
+          <div id="admin-total-badge" style="font-size:28px;font-weight:800;color:var(--primary-light)">—</div>
+        </div>
+
+        <!-- Totais gerais -->
+        <div class="stats-grid" style="margin-bottom:24px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:16px;">
+          <div class="stat-card">
+            <div class="stat-label">Todas as vendas</div>
+            <div class="stat-value" id="total-vendas">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Total rede</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Varejo</div>
+            <div class="stat-value" id="total-varejo">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Canais Varejo</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">VD</div>
+            <div class="stat-value" id="total-vd">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Venda Direta</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Seminovos</div>
+            <div class="stat-value" id="total-seminovos">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Canais Seminovos</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Repasses</div>
+            <div class="stat-value" id="total-repasses">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Canais Repasses</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Leads recebidos</div>
+            <div class="stat-value" id="total-leads">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-neutral">Entrada total</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Leads convertidos</div>
+            <div class="stat-value" id="total-conv">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-success">Lead→Venda %</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Zero KM > 60 dias</div>
+            <div class="stat-value" id="total-60-novos" style="color:var(--warning)">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-warning">Envelhecido</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Seminovos > 60 dias</div>
+            <div class="stat-value" id="total-60-seminovos" style="color:var(--warning)">—</div>
+            <div class="stat-meta"><span class="stat-badge badge-warning">Envelhecido</span></div>
+          </div>
+        </div>
+
+        <!-- Cards por loja -->
+        <div class="section-title">Performance por Loja</div>
+        <div class="lojas-grid" id="lojas-grid">
+          <!-- preenchido por JS -->
+        </div>
+
+
+
+      </div>
+    </main>
+  </div>
+
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { auth, db, LOJAS } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { showToast, loadData, getInitials, monthName, setupStoreSelector, getDaysInDateRange, loadAndAggregateData, initCustomPeriodPicker } from './js/app.js?v=4';
+
+    const LOJA_KEYS = ['matriz', 'zona_sul', 'gravataí', 'viamao', 'multimarcas'];
+    let userData;
+    let chartLojas = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      if (!snap.exists()) { window.location.href = 'index.html'; return; }
+      userData = snap.data();
+      userData.role = 'admin'; // Todos os usuários têm acesso de admin
+
+      setupStoreSelector(userData.role, 'admin');
+      document.getElementById('user-name').textContent = userData.nome || 'Diretor';
+      document.getElementById('user-role').textContent = userData.role === 'admin' ? 'Administrador' : 'Gerente';
+      document.getElementById('user-avatar').textContent = getInitials(userData.nome || 'D');
+
+      const now = new Date();
+      const formatDate = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      document.getElementById('today-date-badge').textContent = `Hoje: ${formatDate(now)}`;
+      const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const defaultEnd = now;
+
+      // Inicializa o seletor de período customizado
+      const inputEl = document.getElementById('date-range-select');
+      inputEl.value = `${formatDate(defaultStart)} - ${formatDate(defaultEnd)}`;
+      initCustomPeriodPicker(inputEl, () => {
+        loadAll();
+      });
+
+      await loadAll();
+
+      document.getElementById('btn-refresh').addEventListener('click', loadAll);
+
+      // Navegação das lojas na barra lateral configurada automaticamente pelo app.js
+
+      document.getElementById('btn-logout').addEventListener('click', async () => {
+        const { logoutUser } = await import('./js/auth.js');
+        logoutUser();
+      });
+    });
+
+    async function loadAll() {
+      const fpInput = document.getElementById('date-range-select');
+      if (!fpInput) return;
+      const val = fpInput.value;
+      if (!val || !val.includes(' - ')) return;
+      const parts = val.split(' - ');
+      const startParts = parts[0].split('/');
+      const endParts = parts[1].split('/');
+      if (startParts.length !== 3 || endParts.length !== 3) return;
+
+      const startStr = `${startParts[2]}-${startParts[1].padStart(2,'0')}-${startParts[0].padStart(2,'0')}`;
+      const endStr = `${endParts[2]}-${endParts[1].padStart(2,'0')}-${endParts[0].padStart(2,'0')}`;
+
+      document.getElementById('admin-subtitle').textContent =
+        `Período selecionado: ${parts[0]} a ${parts[1]}`;
+
+      const days = getDaysInDateRange(startStr, endStr);
+
+      const loading = document.getElementById('loading-overlay');
+      loading.classList.add('show');
+
+      try {
+        const results = await Promise.all(
+          LOJA_KEYS.map(async (loja) => {
+            const [leadsData, estoqueData, vendData] = await Promise.all([
+              loadAndAggregateData(loja, days, 'leads'),
+              loadAndAggregateData(loja, days, 'estoque'),
+              loadAndAggregateData(loja, days, 'vendedores'),
+            ]);
+            return { loja, leadsData, estoqueData, vendData };
+          })
+        );
+
+        renderLojas(results);
+        renderTotais(results);
+
+      } catch (e) {
+        console.error(e);
+        showToast('Erro ao carregar dados.', 'error');
+      } finally {
+        loading.classList.remove('show');
+      }
+    }
+
+    function renderLojas(results) {
+      const grid = document.getElementById('lojas-grid');
+      grid.innerHTML = results.map(({ loja, leadsData, estoqueData, vendData }) => {
+        const leads = leadsData?.leads_quantidade || 0;
+        const vendas = leadsData?.vendas_fechadas || 0;
+        const conv = leads > 0 ? Math.round((vendas / leads) * 100) : 0;
+        const novos = estoqueData?.est_novos || 0;
+        const acima90 = estoqueData?.acima_90 || 0;
+        const nps = vendData?.nps || 0;
+
+        const hasData = !!(leadsData || estoqueData);
+        const dotColor = hasData ? 'var(--success)' : 'var(--text-muted)';
+
+        return `
+          <div class="loja-card" onclick="sessionStorage.setItem('activeLoja', '${loja}'); window.location.href='dashboard.html'">
+            <div class="loja-card-head">
+              <div class="loja-card-name">${LOJAS[loja]}</div>
+              <div class="loja-card-status">
+                <div class="status-dot" style="background:${dotColor}"></div>
+                ${hasData ? 'Dados registrados' : 'Sem dados na semana'}
+              </div>
+            </div>
+            <div class="loja-card-body">
+              <div class="loja-metric">
+                <span class="loja-metric-label">Leads</span>
+                <span class="loja-metric-value">${leads}</span>
+              </div>
+              <div class="loja-metric">
+                <span class="loja-metric-label">Vendas</span>
+                <span class="loja-metric-value">${vendas}</span>
+              </div>
+              <div class="loja-metric">
+                <span class="loja-metric-label">Conversão</span>
+                <span class="loja-metric-value" style="color:${conv >= 10 ? 'var(--success)' : 'var(--warning)'}">${conv}%</span>
+              </div>
+              <div class="loja-metric">
+                <span class="loja-metric-label">Estoque novos</span>
+                <span class="loja-metric-value">${novos}</span>
+              </div>
+              <div class="loja-metric">
+                <span class="loja-metric-label">&gt;90 dias</span>
+                <span class="loja-metric-value" style="color:${acima90 > 0 ? 'var(--danger)' : 'var(--success)'}">${acima90}</span>
+              </div>
+              <div class="loja-metric">
+                <span class="loja-metric-label">NPS</span>
+                <span class="loja-metric-value" style="color:${nps >= 75 ? 'var(--success)' : nps >= 50 ? 'var(--warning)' : 'var(--danger)'}">${nps || '—'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTotais(results) {
+      const totalLeads = results.reduce((s, r) => s + (r.leadsData?.leads_quantidade || 0), 0);
+      const totalVendas = results.reduce((s, r) => s + (r.leadsData?.vendas_fechadas || 0), 0);
+      const totalVarejo = results.reduce((s, r) => s + (r.leadsData?.vendas_varejo || 0), 0);
+      const totalVD = results.reduce((s, r) => s + (r.leadsData?.vendas_direta || 0), 0);
+      const totalSeminovos = results.reduce((s, r) => s + (r.leadsData?.vendas_seminovos || 0), 0);
+      const totalRepasses = results.reduce((s, r) => s + (r.leadsData?.vendas_repasse || 0), 0);
+      
+      const total60Novos = results.reduce((s, r) => s + (r.estoqueData?.acima_60_novos || 0), 0);
+      const total60Seminovos = results.reduce((s, r) => s + (r.estoqueData?.acima_60_seminovos || 0), 0);
+
+      const conv = totalLeads > 0 ? Math.round((totalVendas / totalLeads) * 100) : 0;
+
+      document.getElementById('total-leads').textContent = totalLeads;
+      document.getElementById('total-vendas').textContent = totalVendas;
+      document.getElementById('total-varejo').textContent = totalVarejo;
+      document.getElementById('total-vd').textContent = totalVD;
+      document.getElementById('total-seminovos').textContent = totalSeminovos;
+      document.getElementById('total-repasses').textContent = totalRepasses;
+      document.getElementById('total-conv').textContent = conv + '%';
+      document.getElementById('total-60-novos').textContent = total60Novos;
+      document.getElementById('total-60-seminovos').textContent = total60Seminovos;
+      document.getElementById('admin-total-badge').textContent = `${totalVendas} vendas`;
+    }
+
+  </script>
+</body>
+
+</html>

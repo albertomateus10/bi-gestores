@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI dos Gestores — Login</title>
+  <meta name="description" content="Sistema de Gestão de Indicadores San Marino Concessionárias" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <style>
+    .login-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .input-wrapper { position: relative; }
+    .input-icon {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 15px;
+      transition: color var(--transition);
+      user-select: none;
+    }
+    .input-icon:hover { color: var(--text-secondary); }
+    .input-wrapper .form-control { padding-right: 44px; }
+    .spinner-btn {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    .version-tag {
+      display: inline-block;
+      background: var(--primary-glow);
+      border: 1px solid rgba(192,57,43,0.2);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--primary-light);
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+    .stars {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      margin-bottom: 6px;
+      font-size: 10px;
+      color: var(--primary);
+      opacity: 0.7;
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .auth-tab.active {
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--primary);
+    }
+    .auth-section {
+      display: none;
+    }
+    .auth-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page" id="login-page">
+    <div class="login-bg-glow"></div>
+    <div class="login-bg-glow-2"></div>
+
+    <div class="login-card" id="login-card" style="opacity:0; transition: opacity 0.3s ease;">
+      <!-- Logo / Marca -->
+      <div class="login-logo">
+        <img src="logonova.png" alt="San Marino Logo" style="max-height: 70px; width: auto; margin-bottom: 16px; display: inline-block;" />
+        <h1>BI dos Gestores</h1>
+      </div>
+
+      <!-- Erro -->
+      <div class="login-error" id="login-error">
+        <strong>Erro de acesso:</strong> <span id="error-message">E-mail ou senha incorretos.</span>
+      </div>
+
+      <!-- Abas de Alternância -->
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login">Entrar</div>
+        <div class="auth-tab" id="tab-register">Cadastrar</div>
+      </div>
+
+      <!-- Seção de Login -->
+      <div class="auth-section active" id="sec-login">
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <div class="input-wrapper">
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                autocomplete="current-password"
+                required
+              />
+              <span class="input-icon" id="toggle-pass" title="Mostrar/ocultar senha">👁</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btn-login">
+            Entrar no Sistema
+          </button>
+        </form>
+      </div>
+
+      <!-- Seção de Cadastro -->
+      <div class="auth-section" id="sec-register">
+        <form id="register-form" novalidate>
+          <div class="form-group">
+            <label for="reg-name">Nome Completo</label>
+            <input
+              type="text"
+              id="reg-name"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="reg-email">E-mail Corporativo</label>
+            <input
+              type="email"
+              id="reg-email"
+              class="form-control"
+              required
+            />
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">
+              Apenas e-mails @sanmarinofiat.com.br são permitidos.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-password">Senha</label>
+            <input
+              type="password"
+              id="reg-password"
+              class="form-control"
+              required
+            />
+          </div>
+
+
+
+          <button type="submit" class="btn-primary" id="btn-register">
+            Criar Conta
+          </button>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        Desenvolvido por Alberto Mateus
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay (visível enquanto verifica autenticação) -->
+  <div class="loading-overlay show" id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Firebase + Scripts -->
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import {
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ---- Alternância de Abas ----
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const secLogin = document.getElementById('sec-login');
+    const secRegister = document.getElementById('sec-register');
+    const errorBox = document.getElementById('login-error');
+    const errorMsg = document.getElementById('error-message');
+    const loading = document.getElementById('loading-overlay');
+
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      secLogin.classList.add('active');
+      secRegister.classList.remove('active');
+      errorBox.classList.remove('show');
+    });
+
+    tabRegister.addEventListener('click', () => {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      secRegister.classList.add('active');
+      secLogin.classList.remove('active');
+      errorBox.classList.remove('show');
+    });
+
+    // ---- Login ----
+    const loginForm = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
+    const btnLogin = document.getElementById('btn-login');
+    const togglePass = document.getElementById('toggle-pass');
+
+    togglePass.addEventListener('click', () => {
+      const isPass = passInput.type === 'password';
+      passInput.type = isPass ? 'text' : 'password';
+      togglePass.textContent = isPass ? '🙈' : '👁';
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const snap = await getDoc(doc(db, 'usuarios', user.uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data.role === 'admin') {
+              window.location.href = 'admin.html';
+              return;
+            } else if (data.aprovado === true) {
+              window.location.href = 'dashboard.html';
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Erro ao verificar sessão:', err);
+        }
+      }
+      // Nenhum usuário logado ou conta não aprovada — exibe o login
+      loading.classList.remove('show');
+      document.getElementById('login-card').style.opacity = '1';
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+
+      if (!email || !password) {
+        showError('Preencha e-mail e senha.');
+        return;
+      }
+
+      setLoading(true, btnLogin, 'Entrar no Sistema');
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const snap = await getDoc(doc(db, 'usuarios', cred.user.uid));
+        if (!snap.exists()) {
+          showError('Usuário não encontrado no sistema. Contate o administrador.');
+          await auth.signOut();
+          return;
+        }
+        const data = snap.data();
+        if (data.role !== 'admin' && data.aprovado !== true) {
+          showError('Sua conta ainda não foi aprovada pelo administrador.');
+          await auth.signOut();
+          return;
+        }
+        sessionStorage.setItem('userName', data.nome || 'Gerente');
+        sessionStorage.setItem('userRole', data.role || 'gerente');
+
+        if (data.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      } catch (err) {
+        const messages = {
+          'auth/user-not-found': 'E-mail não encontrado.',
+          'auth/wrong-password': 'Senha incorreta.',
+          'auth/invalid-email': 'E-mail inválido.',
+          'auth/too-many-requests': 'Muitas tentativas. Aguarde e tente novamente.',
+          'auth/invalid-credential': 'E-mail ou senha incorretos.',
+        };
+        showError(messages[err.code] || 'Erro ao fazer login. Tente novamente.');
+      } finally {
+        setLoading(false, btnLogin, 'Entrar no Sistema');
+      }
+    });
+
+    // ---- Cadastro de Usuários ----
+    const registerForm = document.getElementById('register-form');
+    const regName = document.getElementById('reg-name');
+    const regEmail = document.getElementById('reg-email');
+    const regPassword = document.getElementById('reg-password');
+    const btnRegister = document.getElementById('btn-register');
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = regName.value.trim();
+      const email = regEmail.value.trim();
+      const password = regPassword.value;
+
+      if (!nome || !email || !password) {
+        showError('Preencha todos os campos obrigatórios.');
+        return;
+      }
+
+      // Validação do domínio do e-mail
+      if (!email.toLowerCase().endsWith('@sanmarinofiat.com.br')) {
+        showError('Apenas e-mails com o domínio @sanmarinofiat.com.br são permitidos.');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('A senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
+
+      // Auto-detecção de cargo baseada no prefixo do e-mail (sem loja)
+      const emailLower = email.toLowerCase();
+      let role = 'gerente';
+
+      if (emailLower.includes('diretor') || emailLower.includes('admin') || emailLower.includes('diretoria')) {
+        role = 'admin';
+      }
+
+      setLoading(true, btnRegister, 'Criar Conta');
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Salva dados adicionais no Firestore com aprovado: false
+        await setDoc(doc(db, 'usuarios', cred.user.uid), {
+          nome: nome,
+          role: role,
+          aprovado: false, // Novos usuários precisam de aprovação
+          email: email,
+          criadoEm: new Date().toISOString()
+        });
+
+        await auth.signOut(); // Desloga imediatamente para não entrar direto
+        alert('Solicitação de cadastro realizada com sucesso!\nAguarde a aprovação do administrador para acessar o sistema.');
+        registerForm.reset();
+        tabLogin.click();
+      } catch (err) {
+        const messages = {
+          'auth/email-already-in-use': 'Este e-mail já está em uso.',
+          'auth/invalid-email': 'E-mail inválido.',
+          'auth/weak-password': 'A senha informada é muito fraca.',
+          'auth/operation-not-allowed': 'O cadastro por e-mail e senha não está ativado no Firebase.'
+        };
+        showError(messages[err.code] || 'Erro ao realizar cadastro: ' + err.message);
+      } finally {
+        setLoading(false, btnRegister, 'Criar Conta');
+      }
+    });
+
+    function setLoading(on, buttonEl, defaultText) {
+      if (on) {
+        loading.classList.add('show');
+        buttonEl.disabled = true;
+        buttonEl.innerHTML = '<span class="spinner-btn"></span>Processando...';
+      } else {
+        loading.classList.remove('show');
+        buttonEl.disabled = false;
+        buttonEl.innerHTML = defaultText;
+      }
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorBox.classList.add('show');
+      setTimeout(() => errorBox.classList.remove('show'), 5000);
+    }
+
+    emailInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') passInput.focus();
+    });
+  </script>
+</body>
+</html>
